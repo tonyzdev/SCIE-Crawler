@@ -19,12 +19,13 @@ from datetime import datetime
 
 # OpenAlex API configuration
 OPENALEX_API_BASE = "https://api.openalex.org"
-BASE_EMAIL = "ztonys1@outlook.com"
-MAX_WORKERS = 1  # Further reduced to avoid rate limits
-PER_PAGE = 200
-REQUEST_DELAY = 0.5  # Increased to 0.5 seconds (2 requests per second max)
+BASE_EMAIL = "tony1000@gmail.com"
+MAX_WORKERS = 1  # Single thread to avoid rate limits
+PER_PAGE = 100  # Reduced from 200 to lower load per request
+REQUEST_DELAY = 2.0  # Increased to 2 seconds between requests
 MAX_RETRIES = 3  # Maximum number of retries for failed requests
-RETRY_DELAY = 5  # Increased retry delay to 5 seconds
+RETRY_DELAY = 10  # Increased retry delay to 10 seconds
+RATE_LIMIT_COOLDOWN = 60  # Cooldown period when hitting rate limits (seconds)
 
 
 def generate_random_email() -> str:
@@ -50,6 +51,7 @@ def generate_random_email() -> str:
 def retry_on_error(func):
     """
     Decorator to retry a function on error with exponential backoff.
+    Special handling for 403 rate limit errors.
     
     Args:
         func: Function to retry
@@ -64,12 +66,26 @@ def retry_on_error(func):
                 return func(*args, **kwargs)
             except Exception as e:
                 last_exception = e
+                error_str = str(e)
+                
+                # Check if it's a 403 rate limit error
+                is_rate_limit = "403" in error_str or "Forbidden" in error_str
+                
                 if attempt < MAX_RETRIES - 1:
-                    wait_time = RETRY_DELAY * (2 ** attempt)  # Exponential backoff
-                    print(f"  Attempt {attempt + 1} failed: {e}. Retrying in {wait_time}s...")
+                    if is_rate_limit:
+                        # Much longer wait for rate limit errors
+                        wait_time = RATE_LIMIT_COOLDOWN * (attempt + 1)
+                        print(f"  ⚠️  Rate limit hit (403). Cooling down for {wait_time}s...")
+                    else:
+                        wait_time = RETRY_DELAY * (2 ** attempt)  # Exponential backoff
+                        print(f"  Attempt {attempt + 1} failed: {e}. Retrying in {wait_time}s...")
+                    
                     time.sleep(wait_time)
                 else:
-                    print(f"  All {MAX_RETRIES} attempts failed: {e}")
+                    if is_rate_limit:
+                        print(f"  ❌ Rate limit persistent after {MAX_RETRIES} attempts. Skipping...")
+                    else:
+                        print(f"  ❌ All {MAX_RETRIES} attempts failed: {e}")
         raise last_exception
     return wrapper
 
@@ -273,7 +289,7 @@ def process_work(work: Dict) -> Dict:
 
 def download_all_works(journal_id: str, total_count: int) -> List[Dict]:
     """
-    Download all works from a journal using concurrent requests.
+    Download all works from a journal sequentially to avoid rate limits.
     
     Args:
         journal_id: OpenAlex ID of the journal
@@ -283,28 +299,26 @@ def download_all_works(journal_id: str, total_count: int) -> List[Dict]:
         List of processed work dictionaries
     """
     num_pages = (total_count + PER_PAGE - 1) // PER_PAGE
+    print(f"  Downloading {num_pages} pages sequentially...")
     
     all_works = []
     
-    # Use ThreadPoolExecutor for concurrent downloads
-    # Submit tasks with slight delay to avoid burst requests
-    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        futures = []
-        for page in range(1, num_pages + 1):
-            future = executor.submit(fetch_works_page, journal_id, page)
-            futures.append((future, page))
-            # Small delay between task submissions to stagger requests
-            if page % MAX_WORKERS == 0:
-                time.sleep(REQUEST_DELAY * 0.5)
-        
-        for future, page in futures:
-            try:
-                works = future.result()
-                all_works.extend(works)
-            except Exception as e:
-                print(f"  Error processing page {page}: {e}")
+    # Sequential download to avoid overwhelming the API
+    for page in range(1, num_pages + 1):
+        try:
+            works = fetch_works_page(journal_id, page)
+            all_works.extend(works)
+            
+            # Show progress
+            if page % 10 == 0 or page == num_pages:
+                print(f"  Progress: {page}/{num_pages} pages ({len(all_works)} articles)")
+        except Exception as e:
+            print(f"  ❌ Error on page {page}: {e}")
+            # Continue with next page even if one fails
+            continue
     
     # Process all works
+    print(f"  Processing {len(all_works)} articles...")
     processed_works = [process_work(work) for work in all_works]
     
     return processed_works
@@ -549,11 +563,15 @@ def main():
     print(f"Output directory: {args.output_dir}")
     print(f"Log file: {args.log}")
     print()
-    print("Rate limiting settings:")
-    print(f"  - Request delay: {REQUEST_DELAY}s between requests")
-    print(f"  - Max concurrent workers: {MAX_WORKERS}")
+    print("Rate limiting settings (VERY CONSERVATIVE):")
+    print(f"  - Request delay: {REQUEST_DELAY}s between each request")
+    print(f"  - Max concurrent workers: {MAX_WORKERS} (sequential)")
     print(f"  - Per-page results: {PER_PAGE}")
-    print(f"  - Using randomized email addresses for polite pool")
+    print(f"  - 403 cooldown: {RATE_LIMIT_COOLDOWN}s when rate limited")
+    print(f"  - Journal delay: 5s after success, 1s after skip/fail")
+    print(f"  - Using randomized email addresses")
+    print()
+    print("⚠️  This will be SLOW to avoid IP bans. Please be patient.")
     print()
     
     # Start timer
@@ -574,9 +592,9 @@ def main():
         # Add delay between journals to avoid overwhelming the API
         # Longer delay if we just downloaded data (not skipped)
         if result["status"] in ["success"]:
-            time.sleep(2)  # 2 second delay after successful download
+            time.sleep(5)  # 5 second delay after successful download
         else:
-            time.sleep(0.5)  # Shorter delay for skipped/failed journals
+            time.sleep(1)  # 1 second delay for skipped/failed journals
         
         print()  # Empty line for readability
     
