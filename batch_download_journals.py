@@ -19,8 +19,8 @@ from datetime import datetime
 
 # OpenAlex API configuration
 OPENALEX_API_BASE = "https://api.openalex.org"
-BASE_EMAIL = "ztonys@outlook.com"
-MAX_WORKERS = 2  # Further reduced to avoid rate limits
+BASE_EMAIL = "ztonys1@outlook.com"
+MAX_WORKERS = 1  # Further reduced to avoid rate limits
 PER_PAGE = 200
 REQUEST_DELAY = 0.5  # Increased to 0.5 seconds (2 requests per second max)
 MAX_RETRIES = 3  # Maximum number of retries for failed requests
