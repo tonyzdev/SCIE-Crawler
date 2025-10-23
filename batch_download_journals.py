@@ -8,6 +8,8 @@ import requests
 import json
 import time
 import os
+import random
+import string
 from urllib.parse import urlencode
 from typing import List, Dict, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -17,12 +19,32 @@ from datetime import datetime
 
 # OpenAlex API configuration
 OPENALEX_API_BASE = "https://api.openalex.org"
-POLITE_EMAIL = "ztonys@outlook.com"
-MAX_WORKERS = 3  # Reduced for batch processing to avoid rate limits
+BASE_EMAIL = "ztonys@outlook.com"
+MAX_WORKERS = 2  # Further reduced to avoid rate limits
 PER_PAGE = 200
-REQUEST_DELAY = 0.1  # Delay between requests in seconds (10 requests per second max)
+REQUEST_DELAY = 0.5  # Increased to 0.5 seconds (2 requests per second max)
 MAX_RETRIES = 3  # Maximum number of retries for failed requests
-RETRY_DELAY = 2  # Delay between retries in seconds
+RETRY_DELAY = 5  # Increased retry delay to 5 seconds
+
+
+def generate_random_email() -> str:
+    """
+    Generate a random email address based on the base email.
+    This helps distribute requests across different email identifiers.
+    
+    Returns:
+        Random email address string
+    """
+    # Extract domain from base email
+    if "@" in BASE_EMAIL:
+        username, domain = BASE_EMAIL.split("@", 1)
+    else:
+        username = BASE_EMAIL
+        domain = "outlook.com"
+    
+    # Add random suffix to username
+    random_suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+    return f"{username}+{random_suffix}@{domain}"
 
 
 def retry_on_error(func):
@@ -81,7 +103,7 @@ def search_journal_by_name(journal_name: str) -> Optional[Dict]:
     params = {
         "search": journal_name,
         "per-page": 10,
-        "mailto": POLITE_EMAIL
+        "mailto": generate_random_email()
     }
     
     url = f"{OPENALEX_API_BASE}/sources?{urlencode(params)}"
@@ -111,7 +133,7 @@ def get_total_works_count(journal_id: str) -> int:
     params = {
         "filter": f"primary_location.source.id:{journal_id}",
         "per-page": 1,
-        "mailto": POLITE_EMAIL
+        "mailto": generate_random_email()
     }
     
     url = f"{OPENALEX_API_BASE}/works?{urlencode(params)}"
@@ -139,7 +161,7 @@ def fetch_works_page(journal_id: str, page: int) -> List[Dict]:
         "filter": f"primary_location.source.id:{journal_id}",
         "per-page": PER_PAGE,
         "page": page,
-        "mailto": POLITE_EMAIL
+        "mailto": generate_random_email()
     }
     
     url = f"{OPENALEX_API_BASE}/works?{urlencode(params)}"
@@ -265,14 +287,17 @@ def download_all_works(journal_id: str, total_count: int) -> List[Dict]:
     all_works = []
     
     # Use ThreadPoolExecutor for concurrent downloads
+    # Submit tasks with slight delay to avoid burst requests
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        future_to_page = {
-            executor.submit(fetch_works_page, journal_id, page): page 
-            for page in range(1, num_pages + 1)
-        }
+        futures = []
+        for page in range(1, num_pages + 1):
+            future = executor.submit(fetch_works_page, journal_id, page)
+            futures.append((future, page))
+            # Small delay between task submissions to stagger requests
+            if page % MAX_WORKERS == 0:
+                time.sleep(REQUEST_DELAY * 0.5)
         
-        for future in as_completed(future_to_page):
-            page = future_to_page[future]
+        for future, page in futures:
             try:
                 works = future.result()
                 all_works.extend(works)
@@ -524,6 +549,12 @@ def main():
     print(f"Output directory: {args.output_dir}")
     print(f"Log file: {args.log}")
     print()
+    print("Rate limiting settings:")
+    print(f"  - Request delay: {REQUEST_DELAY}s between requests")
+    print(f"  - Max concurrent workers: {MAX_WORKERS}")
+    print(f"  - Per-page results: {PER_PAGE}")
+    print(f"  - Using randomized email addresses for polite pool")
+    print()
     
     # Start timer
     start_time = time.time()
@@ -539,6 +570,13 @@ def main():
         # Save progress periodically (every 10 journals)
         if len(results) % 10 == 0:
             save_progress_log(results, args.log)
+        
+        # Add delay between journals to avoid overwhelming the API
+        # Longer delay if we just downloaded data (not skipped)
+        if result["status"] in ["success"]:
+            time.sleep(2)  # 2 second delay after successful download
+        else:
+            time.sleep(0.5)  # Shorter delay for skipped/failed journals
         
         print()  # Empty line for readability
     
