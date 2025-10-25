@@ -1,4 +1,8 @@
-/output/
+.batch_download.pid
+batch_log.json
+/logs/
+nohup.out
+*.out
 .DS_Store
 __pycache__
 *.pyc
