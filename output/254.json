@@ -1,0 +1,74 @@
+[
+  {
+    "title": "Axial Force And Deformation Of A Restrained Steel Beam In Fire : Description and validation of a simplified analytical procedure",
+    "doi": null,
+    "publication_date": "2016-01-01",
+    "publication_year": 2016,
+    "authors": "Naveed Iqbal; Tim Heistermann; Milan Veljković; Fernanda Lopes; Aldina Santiago; Luís Simões da Silva",
+    "corresponding_authors": "",
+    "abstract": "Structural fire design is exceedingly adopting the performance based approach. There are evidentadvantages of this approach compared to the prescriptive methods from codes. An analytical procedure, ...",
+    "cited_by_count": 2,
+    "openalex_id": "https://openalex.org/W2808802338",
+    "type": "article"
+  },
+  {
+    "title": "A SIMPLIFIED METHOD FOR SEISMIC PERFORMANCE EVALUATION OF STEEL BRIDGE PIERS WITH THIN-WALLED STIFFENED BOX SECTIONS",
+    "doi": "https://doi.org/10.18057/ijasc",
+    "publication_date": "2015-05-11",
+    "publication_year": 2015,
+    "authors": "No authors",
+    "corresponding_authors": "",
+    "abstract": "",
+    "cited_by_count": 2,
+    "openalex_id": "https://openalex.org/W4299880752",
+    "type": "paratext"
+  },
+  {
+    "title": "Sub-frames with reverse channel connectiolns to CFT composite columns : experimental evaluation",
+    "doi": null,
+    "publication_date": "2015-01-01",
+    "publication_year": 2015,
+    "authors": "Fernanda Lopes; Aldina Santiago; Luís Simões da Silva; Naveed Iqbal; Milan Veljković; José Guilherme Santos da Silva",
+    "corresponding_authors": "",
+    "abstract": "This paper presents the experimental results of the investigation on the coupled joint-structure behaviour of the composite sub-frame, using the reverse channel connections between an I-beam and th ...",
+    "cited_by_count": 1,
+    "openalex_id": "https://openalex.org/W2784644916",
+    "type": "article"
+  },
+  {
+    "title": null,
+    "doi": "https://doi.org/10.18057/ijasc.2014",
+    "publication_date": "2012-11-01",
+    "publication_year": 2012,
+    "authors": "Jiandong Zhang; Chun‐Lin Wang; Hanbin Ge",
+    "corresponding_authors": "Hanbin Ge",
+    "abstract": "This paper proposes a simplified seismic evaluation method for the thin-walled stiffened box steel pier to predict its strength and ductility.In this method, two modified bilinear material models for the fiber-beam element are suggested to include the local buckling of the base stiffened plate.An experiment validated a shell element based model, which was selected for comparison with the proposed fiber-beam based model.Twelve numerical cases were then simulated by the shell element based model and the fiber-beam element based model, respectively, and their accuracies were compared with each other.Numerical results showed that the proposed pushover method, employing the amended bilinear kinematic material model for the fiber beam element, is of good accuracy.If the maximum strength is taken as the ultimate point, the bilinear material model, replacing the yield point by the buckling stress, is recommended.If 95 percent of the maximum strength after the peak is regarded as the ultimate point, the elastic-perfectly plastic material model is suggested.",
+    "cited_by_count": 0,
+    "openalex_id": "https://openalex.org/W4243807582",
+    "type": "paratext"
+  },
+  {
+    "title": null,
+    "doi": "https://doi.org/10.18057/ijasc.2014.01",
+    "publication_date": "2012-11-01",
+    "publication_year": 2012,
+    "authors": "Jiandong Zhang; Chun‐Lin Wang; Hanbin Ge",
+    "corresponding_authors": "Hanbin Ge",
+    "abstract": "This paper proposes a simplified seismic evaluation method for the thin-walled stiffened box steel pier to predict its strength and ductility.In this method, two modified bilinear material models for the fiber-beam element are suggested to include the local buckling of the base stiffened plate.An experiment validated a shell element based model, which was selected for comparison with the proposed fiber-beam based model.Twelve numerical cases were then simulated by the shell element based model and the fiber-beam element based model, respectively, and their accuracies were compared with each other.Numerical results showed that the proposed pushover method, employing the amended bilinear kinematic material model for the fiber beam element, is of good accuracy.If the maximum strength is taken as the ultimate point, the bilinear material model, replacing the yield point by the buckling stress, is recommended.If 95 percent of the maximum strength after the peak is regarded as the ultimate point, the elastic-perfectly plastic material model is suggested.",
+    "cited_by_count": 0,
+    "openalex_id": "https://openalex.org/W4248742877",
+    "type": "paratext"
+  },
+  {
+    "title": "Shear Lag Factors for Tension Angles with Unequal-Length Longitudinal Welds",
+    "doi": null,
+    "publication_date": "2019-01-01",
+    "publication_year": 2019,
+    "authors": "J. Kent Hsiao; Saurav Shrestha",
+    "corresponding_authors": "",
+    "abstract": "",
+    "cited_by_count": 0,
+    "openalex_id": "https://openalex.org/W2919119380",
+    "type": "article"
+  }
+]
